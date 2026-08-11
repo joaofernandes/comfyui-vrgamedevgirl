@@ -30109,8 +30109,17 @@ Chrome vault corridor: A sealed industrial passage...</pre>
           onApply: (ids) => {
             segment.lyric_singers = logicalSubjects.filter((subject) => ids.includes(String(subject.id))).map((subject) => subject.name || "Character");
             if (!refs.performer_scene_map || typeof refs.performer_scene_map !== "object") refs.performer_scene_map = {};
-            if (ids.length) refs.performer_scene_map[segment.id] = ids.map(String);
-            else delete refs.performer_scene_map[segment.id];
+            if (ids.length) {
+              refs.performer_scene_map[segment.id] = ids.map(String);
+            } else {
+              delete refs.performer_scene_map[segment.id];
+              // The performer map is authoritative when present, but lyric_singers
+              // is the fallback used after the mapping is cleared. Clear both so a
+              // stale singer cannot reappear when this panel is rendered again.
+              segment.lyric_singers = [];
+              segment.lyric_performance_mode = "together";
+              segment.lyric_cue_map = [];
+            }
             const present = new Set(Array.isArray(refs.subject_scene_map?.[segment.id]) ? refs.subject_scene_map[segment.id] : []);
             ids.forEach((id) => present.add(id));
             if (present.size) refs.subject_scene_map[segment.id] = Array.from(present);
